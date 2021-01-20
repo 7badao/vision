@@ -146,7 +146,10 @@ export default {
       if (!this.allDate) {
         return []
       } else {
-        return this.allDate.type
+        return this.allDate.type.filter(item => {
+          // 当前的数据不等于已点击的数据
+          return item.key !== this.choiceType
+        })
       }
     },
     showTitle () {
