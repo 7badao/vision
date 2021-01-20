@@ -10,6 +10,10 @@ const routes = [{
   path: '/sellerPage',
   name: 'SellerPage',
   component: () => import('@/views/SellerPage')
+}, {
+  path: '/trendPage',
+  name: 'TrendPage',
+  component: () => import('@/views/TrendPage')
 }]
 
 const router = new VueRouter({

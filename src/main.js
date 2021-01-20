@@ -5,6 +5,8 @@ import store from './store'
 import axios from 'axios'
 // 导入全局样式
 import './assets/css/globall.css'
+// 导入font.css
+import './assets/font/iconfont.css'
 // 挂载全局echarts对象
 Vue.prototype.$echarts = window.echarts
 axios.defaults.baseURL = 'http://127.0.0.1:8888/api/'
