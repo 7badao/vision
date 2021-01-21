@@ -1,16 +1,14 @@
 <template>
   <div class="com-container">
-    <div class="title" :style="comStyle">
-      <div @click="showChose=!showChose">
-        <span>{{ '| ' + showTitle}}</span>
-        <span class="iconfont icon-arrow-down title-icon" :style="comStyle"></span>
-      </div>
-      <div class="select-con" v-show="showChose" :style="marginStyle">
+    <div class="title">
+      <span>{{showTitle}}</span>
+      <span class="iconfont icon-arrow-down title-icon" @click="showChose=!showChose"></span>
+      <div class="select-con" v-show="showChose">
         <div
           class="select-item"
           v-for="i in selectTypes"
-          @click="handelSelect(i.key)"
           :key="i.type"
+          @click="handelSelect(i.key)"
         >{{i.text}}</div>
       </div>
     </div>
@@ -25,23 +23,26 @@ export default {
       chartInstance: null,
       allDate: null, // 服务器返回的数据
       showChose: false, // 是否显示可选项
-      choiceType: 'map', // 显示数据类型
-      titleFontSize: 0 // 标题字体大小
-
+      choiceType: 'map' // 显示数据类型
     }
   },
   methods: {
     // 初始化图表
     initChart () {
       this.chartInstance = this.$echarts.init(this.$refs.trendRef, 'chalk')
+      // 初始化配置
       const initOption = {
         xAxis: {
-          type: 'category',
-          boundaryGap: false
+          type: 'category'
         },
         yAxis: {
           type: 'value',
+          // 无需间隙
           boundaryGap: false
+        },
+        // 工具提示
+        tooltip: {
+          trigger: 'axis'
         },
         // 坐标轴位置
         grid: {
@@ -50,10 +51,6 @@ export default {
           right: '4%',
           bottom: '1%',
           containLabel: true
-        },
-        // 工具提示
-        tooltip: {
-          trigger: 'axis'
         },
         legend: {
           left: 20,
@@ -67,27 +64,30 @@ export default {
     // 获取数据
     async getDate () {
       const { data: res } = await this.$http.get('trend')
+      console.log(res)
       this.allDate = res
-      console.log(this.allDate)
       // 渲染视图
       this.updateChart()
     },
     // 更新图表
     updateChart () {
-      // x轴的数据
+      // 处理数据
+      // x轴数据 类目轴
       const timeArr = this.allDate.common.month
+      // y轴的数据 series的数据
       const valueArr = this.allDate[this.choiceType].data
       // 半透明的颜色值
       const colorArr1 = ['rgba(11, 168, 44, 0.5)', 'rgba(44, 110, 255, 0.5)', 'rgba(22, 242, 217, 0.5)', 'rgba(254, 33, 30, 0.5)', 'rgba(250, 105, 0, 0.5)']
       // 全透明的颜色值
       const colorArr2 = ['rgba(11, 168, 44, 0)', 'rgba(44, 110, 255, 0)', 'rgba(22, 242, 217, 0)', 'rgba(254, 33, 30, 0)', 'rgba(250, 105, 0, 0)']
-      // 处理y轴数据
+      // 遍历y轴的数据
       const seriesArr = valueArr.map((item, index) => {
         return {
           name: item.name,
           type: 'line',
-          stack: this.choiceType,
           data: item.data,
+          // 设置相同的stack值
+          stack: this.choiceType,
           // 空对象 以颜色进行填充
           areaStyle: {
             // 颜色渐变 从上往下
@@ -110,6 +110,7 @@ export default {
       const legendArr = valueArr.map(item => {
         return item.name
       })
+      //  获取数据配置
       const dataOption = {
         xAxis: {
           data: timeArr
@@ -123,28 +124,40 @@ export default {
     },
     // 分辨率的适配
     screenAdapter () {
-      // 标题大小
-      this.titleFontSize = this.$refs.trendRef.offsetWidth / 100 * 3.6
       // 屏幕相关的配置项
-      const adapterOption = {
-        legend: {
-          itemWidth: this.titleFontSize,
-          itemHeight: this.titleFontSize,
-          itemGap: this.titleFontSize, // 图例间距
-          textStyle: {
-            fontSize: this.titleFontSize / 2 // 文字大小
-          }
-        }
-      }
+      const adapterOption = {}
       this.chartInstance.setOption(adapterOption)
       // 手动调用图表对象的resize才能产生效果
       this.chartInstance.resize()
     },
-    // 切换图表
+    // 点击改变图表
     handelSelect (i) {
       this.choiceType = i
+      // 更新视图
       this.updateChart()
       this.showChose = false
+    }
+  },
+  // 计算属性
+  computed: {
+    // 计算下拉框的值
+    selectTypes () {
+      // 判段是否有数据
+      if (!this.allDate) {
+        return []
+      } else {
+        return this.allDate.type.filter(item => {
+          // 当前的数据不等于已点击的数据
+          return item.key !== this.choiceType
+        })
+      }
+    },
+    showTitle () {
+      if (!this.allDate) {
+        return []
+      } else {
+        return this.allDate[this.choiceType].title
+      }
     }
   },
   mounted () {
@@ -154,44 +167,12 @@ export default {
     window.addEventListener('resize', this.screenAdapter)
     this.screenAdapter()
   },
-  computed: {
-    // 计算下拉框的值
-    selectTypes () {
-      if (!this.allDate) {
-        return []
-      } else {
-        return this.allDate.type.filter(item => {
-          return item.key !== this.choiceType
-        })
-      }
-    },
-    // 计算title值
-    showTitle () {
-      if (!this.allDate) {
-        return []
-      } else {
-        return this.allDate[this.choiceType].title
-      }
-    },
-    // 设置给标题的对象
-    comStyle () {
-      return {
-        fontSize: this.titleFontSize + 'px'
-      }
-    },
-    marginStyle () {
-      return {
-        marginLeft: this.titleFontSize + 'px'
-      }
-    }
-  },
   destroyed () {
     // 移除监听事件
     window.removeEventListener('resize', this.screenAdapter)
   }
 }
 </script>
-
 <style lang="less" scoped>
 .title {
   position: absolute;
@@ -206,8 +187,5 @@ export default {
     margin-left: 10px;
     cursor: pointer;
   }
-}
-.select-con {
-  background-color: #222333;
 }
 </style>
