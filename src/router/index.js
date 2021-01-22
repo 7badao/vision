@@ -14,6 +14,10 @@ const routes = [{
   path: '/trendPage',
   name: 'TrendPage',
   component: () => import('@/views/TrendPage')
+}, {
+  path: '/mapPage',
+  name: 'MapPage',
+  component: () => import('@/views/mapPage')
 }]
 
 const router = new VueRouter({

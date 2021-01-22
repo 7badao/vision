@@ -228,7 +228,7 @@
                     "areaColor": "rgba(255,178,72,1)",
                     "borderColor": "#eb8146",
                     "borderWidth": 1
-                }
+                },
             },
             "label": {
                 "normal": {
